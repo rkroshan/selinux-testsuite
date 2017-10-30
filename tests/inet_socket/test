@@ -7,7 +7,7 @@ BEGIN {
         plan skip_all => "ctx not supported in ip xfrm policy";
     }
     else {
-        plan tests => 33;
+        plan tests => 36;
     }
 }
 
@@ -159,12 +159,32 @@ if ( ( $pid = fork() ) == 0 ) {
     exec "runcon -t test_inet_server_t $basedir/server stream 65535";
 }
 
+if ( ( $pid2 = fork() ) == 0 ) {
+    exec "runcon -t test_inet_server_t $basedir/server stream 65534";
+}
+
 sleep 1;    # Give it a moment to initialize.
 
 # Verify that authorized client can communicate with the server.
 $result =
   system "runcon -t test_inet_client_t $basedir/client stream 127.0.0.1 65535";
 ok( $result eq 0 );
+
+# Verify that authorized client can communicate with the server.
+$result =
+  system "runcon -t test_inet_client_t $basedir/client stream 127.0.0.1 65534";
+ok( $result eq 0 );
+
+# Verify that authorized client can communicate with the server.
+$result =
+  system "runcon -t test_inet_client_t $basedir/client stream 127.0.0.1 65535";
+ok( $result eq 0 );
+
+# Verify that authorized client can communicate with the server.
+$result =
+  system "runcon -t test_inet_client_t $basedir/client stream 127.0.0.1 65534";
+ok( $result eq 0 );
+
 
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
@@ -183,6 +203,7 @@ ok( $result >> 8 eq 5 );
 
 # Kill the server.
 kill TERM, $pid;
+kill TERM, $pid2;
 
 # Start the dgram server.
 if ( ( $pid = fork() ) == 0 ) {
