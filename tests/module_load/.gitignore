@@ -1,0 +1,13 @@
+finit_load
+init_load
+modules.order
+Module.symvers
+setestsuite_module.ko
+.setestsuite_module.ko.cmd
+setestsuite_module.mod
+setestsuite_module.mod.c
+.setestsuite_module.mod.cmd
+setestsuite_module.mod.o
+.setestsuite_module.mod.o.cmd
+setestsuite_module.o
+.setestsuite_module.o.cmd
