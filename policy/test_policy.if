@@ -82,3 +82,9 @@ interface(`userdom_search_admin_dir', `
     userdom_search_user_home_content($1)
 ')
 ')
+
+# If the macro isn't defined, then most probably module_request permission
+# is just not supported (and relevant operations should be just allowed).
+ifdef(`kernel_request_load_module', `', ` dnl
+interface(`kernel_request_load_module', `')
+')
