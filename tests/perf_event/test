@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    # allow info to be shown during tests
+    $v = $ARGV[0];
+    if ($v) {
+        if ( $v ne "-v" ) {
+            plan skip_all => "Invalid option (use -v)";
+        }
+    }
+    else {
+        $v = " ";
+    }
+
+    if ( $v eq "-v" ) {
+        $level = `cat /proc/sys/kernel/perf_event_paranoid`;
+        chomp($level);
+        print "Paranoid level: $level - ";
+        if ( $level < 0 ) {
+            print "Not paranoid\n";
+        }
+        elsif ( $level eq 0 ) {
+            print "Disallow raw tracepoint/ftrace without CAP_SYS_ADMIN\n";
+        }
+        elsif ( $level eq 1 ) {
+            print "Disallow CPU event access without CAP_SYS_ADMIN\n";
+        }
+        elsif ( $level eq 2 ) {
+            print "Disallow kernel profiling without CAP_SYS_ADMIN\n";
+        }
+        else {
+            print "Undefined level\n";
+        }
+    }
+    plan tests => 9;
+}
+
+# perf_event { open cpu kernel tracepoint read write };
+print "Test perf_event\n";
+$result = system "runcon -t test_perf_t $basedir/perf_event $v";
+ok( $result eq 0 );
+
+# Deny capability { sys_admin } - EACCES perf_event_open(2)
+$result = system "runcon -t test_perf_no_admin_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { open } - EACCES perf_event_open(2)
+$result = system "runcon -t test_perf_no_open_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { cpu } - EACCES perf_event_open(2)
+$result = system "runcon -t test_perf_no_cpu_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { kernel } - EACCES perf_event_open(2)
+$result = system "runcon -t test_perf_no_kernel_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { tracepoint } - EACCES perf_event_open(2)
+$result =
+  system "runcon -t test_perf_no_tracepoint_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { read } - EACCES mmap(2)
+$result = system "runcon -t test_perf_no_read_t $basedir/perf_event -m $v 2>&1";
+ok( $result >> 8 eq 6 );
+
+# Deny perf_event { read } - EACCES read(2)
+$result = system "runcon -t test_perf_no_read_t $basedir/perf_event -f $v 2>&1";
+ok( $result >> 8 eq 7 );
+
+# Deny perf_event { write } - EACCES ioctl(2) write
+$result = system "runcon -t test_perf_no_write_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 2 );
+
+exit;
