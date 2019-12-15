@@ -1,0 +1,7 @@
+TARGETS = mount umount quotas_test statfs_test fanotify_test may_create_test grim_reaper
+LDLIBS += -lselinux
+
+all: $(TARGETS)
+
+clean:
+	rm -f $(TARGETS)

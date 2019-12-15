@@ -1,0 +1,235 @@
+#
+######### Test mount filesystem policy module ##########
+#
+attribute mountdomain;
+
+################# Test all functions ##########################
+type test_mount_t;
+domain_type(test_mount_t)
+unconfined_runs_test(test_mount_t)
+typeattribute test_mount_t testdomain;
+typeattribute test_mount_t mountdomain;
+
+allow test_mount_t self:capability { sys_admin };
+allow test_mount_t self:filesystem { mount remount quotamod relabelfrom relabelto unmount quotaget };
+allow test_mount_t self:dir { mounton add_name write };
+allow test_mount_t test_file_t:dir { mounton write remove_name rmdir };
+# Create test file
+allow test_mount_t self:dir { add_name write };
+allow test_mount_t self:file { create relabelfrom relabelto };
+
+fs_mount_all_fs(test_mount_t)
+fs_remount_all_fs(test_mount_t)
+fs_unmount_all_fs(test_mount_t)
+fs_relabelfrom_all_fs(test_mount_t)
+fs_get_xattr_fs_quotas(test_mount_t)
+files_search_all(test_mount_t)
+# Required for mount opts "rootcontext=system_u:object_r:test_mount_t:s0";
+fs_associate(test_mount_t)
+fs_getattr_xattr_fs(test_mount_t)
+
+# For running quotacheck(8)
+files_type(test_mount_t)
+# Update quotas
+fs_set_all_quotas(test_mount_t)
+allow test_mount_t self:file { quotaon };
+# Create test file and change context:
+allow test_mount_t test_mount_no_getattr_t:file { open read relabelto write };
+dontaudit test_mount_t kernel_t:process { setsched };
+
+#################### Deny filesystem { getattr } ######################
+type test_mount_no_getattr_t;
+domain_type(test_mount_no_getattr_t)
+unconfined_runs_test(test_mount_no_getattr_t)
+typeattribute test_mount_no_getattr_t testdomain;
+typeattribute test_mount_no_getattr_t mountdomain;
+
+allow test_mount_no_getattr_t self:capability { sys_admin };
+fs_mount_all_fs(test_mount_no_getattr_t)
+fs_unmount_all_fs(test_mount_no_getattr_t)
+fs_relabelfrom_all_fs(test_mount_no_getattr_t)
+fs_associate(test_mount_no_getattr_t)
+allow test_mount_no_getattr_t self:dir { mounton };
+allow test_mount_no_getattr_t test_file_t:dir { mounton write remove_name rmdir };
+dontaudit test_mount_no_getattr_t kernel_t:process { setsched };
+
+#################### Deny filesystem { remount } ######################
+type test_mount_no_remount_t;
+domain_type(test_mount_no_remount_t)
+unconfined_runs_test(test_mount_no_remount_t)
+typeattribute test_mount_no_remount_t testdomain;
+typeattribute test_mount_no_remount_t mountdomain;
+
+allow test_mount_no_remount_t self:capability { sys_admin };
+fs_mount_all_fs(test_mount_no_remount_t)
+fs_unmount_all_fs(test_mount_no_remount_t)
+fs_relabelfrom_all_fs(test_mount_no_remount_t)
+fs_associate(test_mount_no_remount_t)
+allow test_mount_no_remount_t self:dir { mounton };
+allow test_mount_no_remount_t test_file_t:dir { mounton write remove_name rmdir };
+dontaudit test_mount_no_remount_t kernel_t:process { setsched };
+
+#################### Deny filesystem { mount } ######################
+type test_mount_no_mount_t;
+domain_type(test_mount_no_mount_t)
+unconfined_runs_test(test_mount_no_mount_t)
+typeattribute test_mount_no_mount_t testdomain;
+typeattribute test_mount_no_mount_t mountdomain;
+
+allow test_mount_no_mount_t self:capability { sys_admin };
+fs_relabelfrom_all_fs(test_mount_no_mount_t)
+fs_associate(test_mount_no_mount_t)
+allow test_mount_no_mount_t self:dir { mounton };
+allow test_mount_no_mount_t test_file_t:dir { mounton write remove_name rmdir };
+dontaudit test_mount_no_mount_t kernel_t:process { setsched };
+
+#################### Deny filesystem { unmount } ######################
+type test_mount_no_unmount_t;
+domain_type(test_mount_no_unmount_t)
+unconfined_runs_test(test_mount_no_unmount_t)
+typeattribute test_mount_no_unmount_t testdomain;
+typeattribute test_mount_no_unmount_t mountdomain;
+
+allow test_mount_no_unmount_t self:capability { sys_admin };
+fs_mount_all_fs(test_mount_no_unmount_t)
+fs_relabelfrom_all_fs(test_mount_no_unmount_t)
+fs_associate(test_mount_no_unmount_t)
+allow test_mount_no_unmount_t self:dir { mounton };
+allow test_mount_no_unmount_t test_file_t:dir { mounton write remove_name rmdir };
+dontaudit test_mount_no_unmount_t kernel_t:process { setsched };
+
+#################### Deny filesystem { relabelfrom } ######################
+type test_mount_no_relabelfrom_t;
+domain_type(test_mount_no_relabelfrom_t)
+unconfined_runs_test(test_mount_no_relabelfrom_t)
+typeattribute test_mount_no_relabelfrom_t testdomain;
+typeattribute test_mount_no_relabelfrom_t mountdomain;
+
+allow test_mount_no_relabelfrom_t self:capability { sys_admin };
+fs_associate(test_mount_no_relabelfrom_t)
+allow test_mount_no_relabelfrom_t self:dir { mounton };
+allow test_mount_no_relabelfrom_t test_file_t:dir { mounton write remove_name rmdir };
+dontaudit test_mount_no_relabelfrom_t kernel_t:process { setsched };
+
+#################### Deny filesystem { relabelto } ######################
+type test_mount_no_relabelto_t;
+domain_type(test_mount_no_relabelto_t)
+unconfined_runs_test(test_mount_no_relabelto_t)
+typeattribute test_mount_no_relabelto_t testdomain;
+typeattribute test_mount_no_relabelto_t mountdomain;
+
+allow test_mount_no_relabelto_t self:capability { sys_admin };
+fs_mount_all_fs(test_mount_no_relabelto_t)
+fs_relabelfrom_all_fs(test_mount_no_relabelto_t)
+fs_associate(test_mount_no_relabelto_t)
+allow test_mount_no_relabelto_t self:dir { mounton };
+allow test_mount_no_relabelto_t test_file_t:dir { mounton write remove_name rmdir };
+dontaudit test_mount_no_relabelto_t kernel_t:process { setsched };
+
+#################### Deny filesystem { associate } ######################
+type test_mount_no_associate_t;
+type test_mount_no_associate1_t;
+domain_type(test_mount_no_associate_t)
+unconfined_runs_test(test_mount_no_associate_t)
+typeattribute test_mount_no_associate_t testdomain;
+typeattribute test_mount_no_associate_t mountdomain;
+
+allow test_mount_no_associate_t self:capability { sys_admin };
+allow test_mount_no_associate_t self:filesystem { relabelto mount relabelfrom };
+fs_mount_all_fs(test_mount_no_associate_t)
+fs_relabelfrom_all_fs(test_mount_no_associate_t)
+allow test_mount_no_associate_t self:dir { mounton };
+allow test_mount_no_associate_t test_file_t:dir { mounton write remove_name rmdir };
+dontaudit test_mount_no_associate_t kernel_t:process { setsched };
+
+########## Deny filesystem { associate } for create file ################
+type test_mount_no_associate_file_t;
+domain_type(test_mount_no_associate_file_t)
+unconfined_runs_test(test_mount_no_associate_file_t)
+typeattribute test_mount_no_associate_file_t testdomain;
+typeattribute test_mount_no_associate_file_t mountdomain;
+
+allow test_mount_no_associate_file_t self:capability { sys_admin };
+allow test_mount_no_associate_file_t self:filesystem { mount relabelfrom relabelto unmount associate };
+allow test_mount_no_associate_file_t self:dir { mounton add_name write };
+allow test_mount_no_associate_file_t test_file_t:dir { mounton write remove_name rmdir };
+
+fs_mount_all_fs(test_mount_no_associate_file_t)
+fs_unmount_all_fs(test_mount_no_associate_file_t)
+fs_relabelfrom_all_fs(test_mount_no_associate_file_t)
+fs_associate(test_mount_no_associate_file_t)
+fs_getattr_xattr_fs(test_mount_no_associate_file_t)
+dontaudit test_mount_no_associate_file_t kernel_t:process { setsched };
+
+# Create test file
+allow test_mount_no_associate_file_t self:file { create relabelfrom relabelto };
+############ hooks.c may_create() FILESYSTEM__ASSOCIATE #############
+# FOR: neverallow unlabeled_t test_mount_no_associate_file_t:filesystem { associate };
+allow test_mount_no_associate_file_t unconfined_t:file { open read write };
+allow test_mount_no_associate_file_t unlabeled_t:dir { add_name search write };
+allow test_mount_no_associate_file_t unlabeled_t:file { create open relabelfrom write };
+############ hooks.c selinux_inode_setxattr() FILESYSTEM__ASSOCIATE ##########
+# FOR: neverallow unconfined_t test_mount_no_associate_file_t:filesystem { associate };
+allow test_mount_no_associate_file_t unconfined_t:dir { add_name write };
+allow test_mount_no_associate_file_t unconfined_t:file { create relabelfrom relabelto };
+
+#################### Deny filesystem { quotamod } ######################
+type test_mount_no_quotamod_t;
+domain_type(test_mount_no_quotamod_t)
+unconfined_runs_test(test_mount_no_quotamod_t)
+typeattribute test_mount_no_quotamod_t testdomain;
+typeattribute test_mount_no_quotamod_t mountdomain;
+
+allow test_mount_no_quotamod_t self:capability { sys_admin };
+allow test_mount_no_quotamod_t self:filesystem { quotaget relabelto mount unmount};
+fs_mount_all_fs(test_mount_no_quotamod_t)
+fs_relabelfrom_all_fs(test_mount_no_quotamod_t)
+fs_associate(test_mount_no_quotamod_t)
+# Required as $private_path to quota files
+files_search_all(test_mount_no_quotamod_t)
+allow test_mount_no_quotamod_t self:dir { mounton };
+allow test_mount_no_quotamod_t test_file_t:dir { mounton write remove_name rmdir };
+dontaudit test_mount_no_quotamod_t kernel_t:process { setsched };
+
+#################### Deny filesystem { quotaget } ######################
+type test_mount_no_quotaget_t;
+domain_type(test_mount_no_quotaget_t)
+unconfined_runs_test(test_mount_no_quotaget_t)
+typeattribute test_mount_no_quotaget_t testdomain;
+typeattribute test_mount_no_quotaget_t mountdomain;
+
+allow test_mount_no_quotaget_t self:capability { sys_admin };
+allow test_mount_no_quotaget_t self:filesystem { quotamod relabelto mount unmount relabelfrom };
+allow test_mount_no_quotaget_t self:dir { mounton };
+allow test_mount_no_quotaget_t test_file_t:dir { mounton write remove_name rmdir };
+allow test_mount_no_quotaget_t self:file { quotaon };
+fs_mount_all_fs(test_mount_no_quotaget_t)
+fs_relabelfrom_all_fs(test_mount_no_quotaget_t)
+fs_associate(test_mount_no_quotaget_t)
+# Required as $private_path to quota files
+files_search_all(test_mount_no_quotaget_t)
+# For running quotacheck(8)
+files_type(test_mount_no_quotaget_t)
+dontaudit test_mount_no_quotaget_t kernel_t:process { setsched };
+
+#################### Deny filesystem { watch } ######################
+type test_mount_no_watch_t;
+domain_type(test_mount_no_watch_t)
+unconfined_runs_test(test_mount_no_watch_t)
+typeattribute test_mount_no_watch_t testdomain;
+typeattribute test_mount_no_watch_t mountdomain;
+
+allow test_mount_no_watch_t self:capability { sys_admin };
+allow test_mount_no_watch_t self:filesystem { associate relabelto mount unmount relabelfrom };
+allow test_mount_no_watch_t self:dir { mounton };
+allow test_mount_no_watch_t test_file_t:dir { mounton write remove_name rmdir };
+fs_mount_all_fs(test_mount_no_watch_t)
+fs_relabelfrom_all_fs(test_mount_no_watch_t)
+fs_associate(test_mount_no_watch_t)
+dontaudit test_mount_no_watch_t kernel_t:process { setsched };
+
+#
+########### Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(mountdomain)
+userdom_sysadm_entry_spec_domtrans_to(mountdomain)

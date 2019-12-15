@@ -1,0 +1,7 @@
+(common filesystem (watch))
+(classcommon filesystem filesystem)
+
+(allow test_mount_t self(filesystem (watch)))
+
+; Until 'fs_watch_all_fs(test_mount_t)' in Policy use:
+(allow test_mount_t fs_t (filesystem (watch)))
