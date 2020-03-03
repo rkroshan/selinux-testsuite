@@ -1,6 +1,14 @@
-INCLUDEDIR ?= /usr/include
-POLDEV ?= /usr/share/selinux/devel
+PREFIX ?= /usr
+BINDIR ?= $(PREFIX)/bin
+INCLUDEDIR ?= $(PREFIX)/include
+POLDEV ?= $(PREFIX)/share/selinux/devel
 SELINUXFS ?= /sys/fs/selinux
+CHECKPOLICY = $(BINDIR)/checkpolicy
+CHECKMODULE = $(BINDIR)/checkmodule
+
+POL_VERS := $(shell $(CHECKPOLICY) -V |cut -f 1 -d ' ')
+MOD_POL_VERS := $(shell $(CHECKMODULE) -V |cut -f 2 -d '-')
+MAX_KERNEL_POLICY := $(shell cat $(SELINUXFS)/policyvers)
 
 export CFLAGS+=-g -O0 -Wall -D_GNU_SOURCE
 
@@ -102,6 +110,10 @@ ifeq ($(shell grep -q filesystem $(POLDEV)/include/support/all_perms.spt && echo
 ifneq ($(shell ./kvercmp $$(uname -r) 5.2),-1)
 SUBDIRS += fs_filesystem
 endif
+endif
+
+ifeq ($(shell test $(POL_VERS) -ge 32 && test $(MAX_KERNEL_POLICY) -ge 32 && echo true),true)
+SUBDIRS += glblub
 endif
 
 ifeq ($(DISTRO),RHEL4)

@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+
+# Basic test for default_range glblub option
+
+use Test;
+BEGIN { plan tests => 8 }
+
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
+
+sub run_check {
+    my ( $src, $tgt, $res ) = @_;
+
+    my $context_base = "system_u:object_r:unlabeled_t";
+
+    my $result =
+      `$basedir/compute_create $context_base:$src $context_base:$tgt db_table`;
+
+    ok( $result eq "$context_base:$res\n" );
+}
+
+sub run_check_fail {
+    my ( $src, $tgt, $res ) = @_;
+
+    my $context_base = "system_u:object_r:unlabeled_t";
+
+    ok(
+        system(
+"$basedir/compute_create $context_base:$src $context_base:$tgt db_table"
+        )
+    );
+}
+
+run_check( "s0:c1,c2,c5-s0:c1.c20", "s0:c0.c20-s0:c0.c36",
+    "s0:c1,c2,c5-s0:c1.c20" );
+
+run_check( "s0-s1:c0.c12",  "s0",             "s0" );
+run_check( "s0-s1:c0.c12",  "s0-s1:c0.c1023", "s0-s1:c0.c12" );
+run_check( "s0-s4:c0.c512", "s1-s1:c0.c1023", "s1-s1:c0.c512" );
+run_check( "s0-s15:c0,c2",  "s4-s6:c0.c128",  "s4-s6:c0,c2" );
+run_check( "s0-s4",         "s2-s6",          "s2-s4" );
+
+run_check_fail( "s0-s4", "s5-s8" );
+run_check_fail( "s5-s8", "s0-s4" );
