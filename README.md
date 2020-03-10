@@ -73,7 +73,9 @@ following command:
 		libbpf-devel \
 		keyutils-libs-devel \
 		kernel-devel \
-		quota
+		quota \
+		xfsprogs-devel \
+		libuuid-devel
 
 The testsuite requires a pre-existing base policy configuration of SELinux,
 using either the old example policy or the reference policy as the baseline.
@@ -163,6 +165,12 @@ will also perform tests of context mounts with and without the
 security_label export option and will test default NFS file labeling
 in the absence of any options.  When finished, it will unmount and
 unexport the mount and then stop the nfs-server.
+
+There is also an option to allow individual tests to be run on NFS as
+shown by the following example (ensure a valid policy is loaded):
+
+       # cd selinux-testsuite
+       # ./tools/nfs.sh nfs_filesystem -v
 
 ## Running the Tests
 
