@@ -1,0 +1,29 @@
+; This information is NOT compiled into a sandbox policy, it is here just to
+; make the cil compiler happy. For now, we leave it here with dummy information.
+(sid SID)
+(sidorder (SID))
+(user USER)
+(role ROLE)
+(category CAT)
+(categoryorder (CAT))
+(sensitivity SENS)
+(sensitivityorder (SENS))
+(sensitivitycategory SENS (CAT))
+(roletype ROLE test_sandbox_dir_t)
+(userrole USER ROLE)
+(userlevel USER (SENS))
+(userrange USER ((SENS)(SENS (CAT))))
+(sidcontext SID (USER ROLE test_sandbox_dir_t ((SENS)(SENS))))
+
+; type: test_sandbox_rxdir_t
+; perms: no
+; mode: deny
+
+(class dir (read getattr open search rmdir))
+(class file (getattr))
+(classorder (dir file))
+(type test_sandbox_rxdir_t)
+(type test_sandbox_dir_t)
+(deny test_sandbox_rxdir_t test_sandbox_dir_t (dir (read getattr open)))
+(deny test_sandbox_rxdir_t test_sandbox_dir_t (dir (getattr search open)))
+(deny test_sandbox_rxdir_t test_sandbox_dir_t (file (getattr)))

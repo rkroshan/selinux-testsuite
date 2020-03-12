@@ -1,0 +1,48 @@
+attribute test_sandbox_domain;
+
+type test_sandbox_file_t;
+files_type(test_sandbox_file_t)
+
+type test_sandbox_dir_t;
+files_type(test_sandbox_dir_t);
+
+type test_sandbox_nodir_t;
+domain_type(test_sandbox_nodir_t)
+unconfined_runs_test(test_sandbox_nodir_t)
+typeattribute test_sandbox_nodir_t test_sandbox_domain;
+typeattribute test_sandbox_nodir_t testdomain;
+allow test_sandbox_nodir_t test_sandbox_dir_t:file { getattr };
+
+type test_sandbox_rxdir_t;
+domain_type(test_sandbox_rxdir_t)
+unconfined_runs_test(test_sandbox_rxdir_t)
+typeattribute test_sandbox_rxdir_t test_sandbox_domain;
+typeattribute test_sandbox_rxdir_t testdomain;
+allow test_sandbox_rxdir_t test_sandbox_dir_t:dir { getattr read open };
+allow test_sandbox_rxdir_t test_sandbox_dir_t:dir search_dir_perms;
+allow test_sandbox_rxdir_t test_sandbox_dir_t:file { getattr };
+
+require {
+    type ls_exec_t;
+}
+domain_entry_file(test_sandbox_domain, ls_exec_t)
+domain_transition_pattern(sysadm_t, ls_exec_t, test_sandbox_domain)
+
+type test_sandbox_noop;
+domain_type(test_sandbox_noop)
+unconfined_runs_test(test_sandbox_noop)
+typeattribute test_sandbox_noop test_sandbox_domain;
+typeattribute test_sandbox_noop testdomain;
+allow test_sandbox_noop test_sandbox_file_t:file { getattr read open };
+allow test_sandbox_noop test_sandbox_nodir_t:sandbox { load_policy unload_policy };
+allow test_sandbox_noop test_sandbox_rxdir_t:sandbox { load_policy unload_policy };
+
+type test_sandbox_op;
+domain_type(test_sandbox_op)
+unconfined_runs_test(test_sandbox_op)
+typeattribute test_sandbox_op test_sandbox_domain;
+typeattribute test_sandbox_op testdomain;
+allow test_sandbox_op test_sandbox_file_t:file { getattr read open };
+allow test_sandbox_op test_sandbox_op:security { sandbox };
+allow test_sandbox_op test_sandbox_nodir_t:sandbox { load_policy unload_policy };
+allow test_sandbox_op test_sandbox_rxdir_t:sandbox { load_policy unload_policy };
