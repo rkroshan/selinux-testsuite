@@ -7,6 +7,7 @@ SELINUXFS ?= /sys/fs/selinux
 SEMODULE = $(SBINDIR)/semodule
 CHECKPOLICY = $(BINDIR)/checkpolicy
 CHECKMODULE = $(BINDIR)/checkmodule
+SUPPORTS_CIL ?= y
 
 DISTRO=$(shell ../tests/os_detect)
 
@@ -30,15 +31,21 @@ TARGETS = \
 	test_mmap.te test_overlayfs.te test_mqueue.te \
 	test_ibpkey.te test_atsecure.te test_cgroupfs.te
 
+ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
+SUPPORTS_CIL = n
+endif
 
+ifeq ($(SUPPORTS_CIL),y)
+CIL_TARGETS = test_mlsconstrain.cil test_overlay_defaultrange.cil
 ifeq ($(shell [[ $(MAX_KERNEL_POLICY) -ge 32 && $(POL_VERS) -ge 32 ]] && echo true),true)
 # If other MLS tests get written this can be moved outside of the glblub test
 ifeq ($(POL_TYPE), MLS)
-CIL_TARGETS = test_glblub.cil
+CIL_TARGETS += test_glblub.cil
 else ifeq ($(POL_TYPE), MCS)
-CIL_TARGETS = test_add_levels.cil test_glblub.cil
-endif
-endif # GLBLUB
+CIL_TARGETS += test_add_levels.cil test_glblub.cil
+endif # POL_TYPE == MLS/MCS
+endif # POLICY_VERS >= 32
+endif # SUPPORTS_CIL == y
 
 ifeq ($(shell [ $(POL_VERS) -ge 24 ] && echo true),true)
 TARGETS += test_bounds.te test_nnp_nosuid.te
@@ -161,12 +168,16 @@ build: $(TARGETS)
 
 load: expand_check all
 	# General policy load
-	@-/usr/sbin/setsebool allow_domain_fd_use=0
+	@if /usr/sbin/getsebool allow_domain_fd_use 2> /dev/null; then \
+		/usr/sbin/setsebool allow_domain_fd_use=0; \
+	fi
 	$(SEMODULE) -i test_policy/test_policy.pp $(CIL_TARGETS)
 
 unload:
 	# General policy unload
-	@-/usr/sbin/setsebool allow_domain_fd_use=1
+	@if /usr/sbin/getsebool allow_domain_fd_use 2> /dev/null; then \
+		/usr/sbin/setsebool allow_domain_fd_use=1; \
+	fi
 	$(SEMODULE) -r test_policy $(subst .cil,,$(CIL_TARGETS))
 
 clean:
